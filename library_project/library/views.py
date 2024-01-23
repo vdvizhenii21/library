@@ -1,6 +1,7 @@
 from django.shortcuts import render
+from datetime import date
 from django.db.models import Q
-from django.views.generic import View
+from django.views.generic import View, ListView
 from .models import Book
 from .forms import SearchForm
 
@@ -19,11 +20,15 @@ class BookListView(View):
         return render(request, self.template_name, {'books': books, 'form': form})
 
 
-def overdue_books(request):
+class OverdueBooksListView(ListView):
+    model = Book
+    template_name = 'overdue_books.html'
+    context_object_name = 'books'
 
-    books = Book.objects.filter(checked_out=True)
+    def get_queryset(self):
+        return Book.objects.filter(checked_out=True)
 
-    context = {
-        'books': books,
-    }
-    return render(request, 'overdue_books.html', context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['today'] = date.today()
+        return context
